@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediChat — Create Account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #09090b; /* Zinc 950 */
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(6, 182, 212, 0.4);
+    --accent: #06b6d4; /* Cyan 500 */
+    --accent-hover: #0891b2;
+    --accent-glow: rgba(6, 182, 212, 0.3);
+    --accent2: #8b5cf6; /* Violet 500 */
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --error: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Animated glowing orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    animation: drift 15s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+  .orb1 { width: 50vw; height: 50vw; background: rgba(139, 92, 246, 0.07); top: -20vh; left: -10vw; animation-delay: 0s; }
+  .orb2 { width: 40vw; height: 40vw; background: rgba(6, 182, 212, 0.06); bottom: -10vh; right: -5vw; animation-delay: -5s; }
+  .orb3 { width: 30vw; height: 30vw; background: rgba(139, 92, 246, 0.04); bottom: 10vh; left: 30vw; animation-delay: -10s; }
+
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 30px) scale(1.1); }
+  }
+
+  /* Split Layout */
+  .left-panel {
+    width: 45%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6vw;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at right, rgba(0,0,0,0) 0%, var(--bg) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Subtle dot grid on left panel */
+  .grid-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .brand {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 8vh;
+    position: relative; z-index: 1;
+  }
+
+  .brand-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2));
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 0 24px rgba(6, 182, 212, 0.2);
+  }
+
+  .brand-name {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff, var(--text-muted));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-text {
+    position: relative; z-index: 1;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    color: #fff;
+  }
+
+  .hero-text span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    position: relative; z-index: 1;
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 480px;
+    margin-bottom: 48px;
+  }
+
+  .steps {
+    position: relative; z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent2);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-info strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .step-info span {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    padding: 40px;
+    overflow-y: auto;
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(9, 9, 11, 0.7);
+    backdrop-filter: blur(40px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px 40px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .form-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+  .form-subtitle a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .form-subtitle a:hover { color: #fff; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap .icon {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px 12px 42px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    appearance: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--border-glow);
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15), inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .field input:focus + .icon, .field select:focus + .icon { opacity: 1; color: var(--accent); }
+  .field input::placeholder { color: rgba(255,255,255,0.3); }
+
+  .field select option { background: #09090b; color: var(--text); }
+
+  .toggle-pass {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+  .toggle-pass:hover { color: #fff; }
+
+  /* Password strength */
+  .strength-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  .strength-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Terms */
+  .terms-check {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .terms-check input {
+    width: 16px; height: 16px;
+    accent-color: var(--accent2);
+    margin-top: 2px;
+    cursor: pointer;
+  }
+
+  .terms-check label {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .terms-check a { color: var(--accent); text-decoration: none; font-weight: 500;}
+  .terms-check a:hover { color: #fff; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.3);
+    margin-bottom: 24px;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 16px;
+    color: var(--text-muted);
+    font-size: 13px; font-weight: 500;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; border-top: 1px solid var(--border);
+  }
+
+  .btn-social {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .btn-social:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .error-msg {
+    background: var(--danger-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--error);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #fca5a5;
+    margin-bottom: 20px;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+
+  @media (max-width: 900px) {
+    .left-panel { display: none; }
+    .right-panel { padding: 24px; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- Left Panel -->
+<div class="left-panel">
+  <div class="grid-pattern"></div>
+  <div class="brand">
+    <div class="brand-icon">🏥</div>
+    <div class="brand-name">MediChat</div>
+  </div>
+
+  <h1 class="hero-text">Join <span>thousands</span><br>getting smarter<br>about health.</h1>
+  <p class="hero-sub">Create your free account and get personalized, AI-driven health guidance tailored specifically to your profile.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-info">
+        <strong>Create your profile</strong>
+        <span>Basic health info helps us tailor responses for you.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-info">
+        <strong>Describe your symptoms</strong>
+        <span>Tell MediChat what you're experiencing in plain language.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-info">
+        <strong>Get intelligent guidance</strong>
+        <span>Receive tailored analysis, remedies, and doctor visit advice.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Right Panel -->
+<div class="right-panel">
+  <div class="form-container">
+    <h2 class="form-title">Create your account</h2>
+    <p class="form-subtitle">Already have one? <a href="signin.html">Sign in →</a></p>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="field-group">
+      <div class="two-col">
+        <div class="field">
+          <label>First Name</label>
+          <div class="input-wrap">
+            <span class="icon">👤</span>
+            <input type="text" id="fname" placeholder="John">
+          </div>
+        </div>
+        <div class="field">
+          <label>Last Name</label>
+          <div class="input-wrap">
+            <span class="icon">👤</span>
+            <input type="text" id="lname" placeholder="Doe">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <span class="icon">✉️</span>
+          <input type="email" id="email" placeholder="you@example.com">
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>Age</label>
+          <div class="input-wrap">
+            <span class="icon">🎂</span>
+            <input type="number" id="age" placeholder="25" min="1" max="120">
+          </div>
+        </div>
+        <div class="field">
+          <label>Biological Sex</label>
+          <div class="input-wrap">
+            <span class="icon">⚕️</span>
+            <select id="sex">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="icon">🔑</span>
+          <input type="password" id="password" placeholder="Create a strong password" oninput="checkStrength(this.value)">
+          <button class="toggle-pass" onclick="togglePass('password', this)">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="strength-text" id="strength-text">Enter a password</div>
+      </div>
+
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="input-wrap">
+          <span class="icon">🔒</span>
+          <input type="password" id="confirm-password" placeholder="Repeat your password">
+          <button class="toggle-pass" onclick="togglePass('confirm-password', this)">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-check">
+      <input type="checkbox" id="terms">
+      <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand this is not a substitute for professional medical advice.</label>
+    </div>
+
+    <button class="btn-primary" onclick="handleSignUp()">Create My Account</button>
+
+    <div class="divider">or sign up with</div>
+    <button class="btn-social" onclick="socialSignup('Google')"><span>🌐</span> Continue with Google</button>
+    <button class="btn-social" onclick="socialSignup('Apple')"><span>🍎</span> Continue with Apple</button>
+  </div>
+</div>
+
+<script>
+function togglePass(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
+
+function checkStrength(val) {
+  const fill = document.getElementById('strength-fill');
+  const text = document.getElementById('strength-text');
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const levels = [
+    { pct: '0%', color: 'transparent', label: 'Enter a password' },
+    { pct: '25%', color: '#ef4444', label: '⚠️ Weak' },
+    { pct: '50%', color: '#f59e0b', label: '🔶 Fair' },
+    { pct: '75%', color: '#eab308', label: '🟡 Good' },
+    { pct: '100%', color: '#10b981', label: '✅ Strong' },
+  ];
+  const level = val.length === 0 ? levels[0] : levels[score] || levels[1];
+  fill.style.width = level.pct;
+  fill.style.background = level.color;
+  text.textContent = level.label;
+}
+
+function handleSignUp() {
+  const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const age = document.getElementById('age').value;
+  const sex = document.getElementById('sex').value;
+  const pw = document.getElementById('password').value;
+  const cpw = document.getElementById('confirm-password').value;
+  const terms = document.getElementById('terms').checked;
+  const err = document.getElementById('error-msg');
+
+  if (!fname || !lname || !email || !pw || !cpw) {
+    err.textContent = '⚠️ Please fill in all required fields.';
+    err.style.display = 'block'; return;
+  }
+  if (pw !== cpw) {
+    err.textContent = '⚠️ Passwords do not match.';
+    err.style.display = 'block'; return;
+  }
+  if (pw.length < 6) {
+    err.textContent = '⚠️ Password must be at least 6 characters.';
+    err.style.display = 'block'; return;
+  }
+  if (!terms) {
+    err.textContent = '⚠️ Please accept the Terms of Service to continue.';
+    err.style.display = 'block'; return;
+  }
+
+  err.style.display = 'none';
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = 'Creating account...';
+  btn.style.opacity = '0.9';
+
+  localStorage.setItem('medichat_user', JSON.stringify({ email, name: fname, age, sex }));
+  setTimeout(() => { window.location.href = 'medical_chatbot.html'; }, 800);
+}
+
+function socialSignup(provider) {
+  localStorage.setItem('medichat_user', JSON.stringify({ email: `${provider.toLowerCase()}@user.com`, name: 'User' }));
+  window.location.href = 'medical_chatbot.html';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSignUp();
+});
+</script>
+</body>
+</html>

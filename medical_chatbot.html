@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediChat — AI Health Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: rgba(255, 255, 255, 0.03);
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(6, 182, 212, 0.4);
+      --accent: #06b6d4;
+      --accent-dim: rgba(6, 182, 212, 0.15);
+      --accent2: #8b5cf6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --user-bg: rgba(6, 182, 212, 0.08);
+      --user-border: rgba(6, 182, 212, 0.2);
+      --bot-bg: rgba(255, 255, 255, 0.04);
+      --bot-border: rgba(255, 255, 255, 0.08);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --danger-border: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    /* Ambient glowing orbs in background */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    body::before {
+      width: 40vw; height: 40vw;
+      background: rgba(139, 92, 246, 0.06);
+      top: -10vw; left: -10vw;
+    }
+    body::after {
+      width: 30vw; height: 30vw;
+      background: rgba(6, 182, 212, 0.06);
+      bottom: -10vw; right: -5vw;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2));
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.15);
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .topbar-center {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.2);
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 2.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); box-shadow: 0 0 4px var(--accent); }
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-topbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-topbar:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .btn-clear {
+      color: var(--danger);
+      border-color: var(--danger-border);
+      background: var(--danger-bg);
+    }
+    .btn-clear:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fff;
+      border-color: var(--danger);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 6px 16px 6px 8px;
+    }
+
+    .user-av {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-nm {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Disclaimer */
+    .disclaimer-bar {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      border-radius: 16px;
+      padding: 10px 24px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #fca5a5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    /* MAIN GRID */
+    .main-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    /* PANELS */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-left, .sidebar-right {
+      padding: 20px;
+      overflow-y: auto;
+    }
+    /* hide scrollbar for elegance */
+    .sidebar-left::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar { width: 0px; }
+
+    .panel-header {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .qs-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .qs-btn:hover {
+      background: var(--accent-dim);
+      border-color: rgba(6, 182, 212, 0.3);
+      color: var(--text);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
+    }
+    .qs-btn .qi {
+      font-size: 16px;
+    }
+
+    .profile-card {
+      margin-top: auto;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.08));
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 16px;
+    }
+    .pc-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .pc-email {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* Right Sidebar Blocks */
+    .info-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .ib-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-block p, .info-block ul {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .info-block ul {
+      list-style: none;
+    }
+    .info-block ul li {
+      margin-bottom: 6px;
+      display: flex;
+    }
+    .info-block ul li::before {
+      content: '•';
+      color: var(--accent2);
+      margin-right: 8px;
+    }
+    .emer-block {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+    }
+    .emer-block .ib-title { color: #f87171; }
+    .emer-block p { color: #fca5a5; }
+    .emer-block .phone {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      color: #f87171;
+      margin-top: 10px;
+      background: rgba(239, 68, 68, 0.15);
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    /* CHAT AREA */
+    .chat-area {
+      position: relative;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar { width: 6px; }
+    #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+    .welcome {
+      text-align: center;
+      padding: 60px 20px;
+      animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .welcome .wi {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.4));
+    }
+    .welcome h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .welcome p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 460px;
+      margin: 0 auto 30px;
+      line-height: 1.6;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .tag {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      color: #fff;
+      background: rgba(139, 92, 246, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px) }
+      to { opacity: 1; transform: translateY(0) }
+    }
+
+    /* Messages */
+    .msg {
+      display: flex;
+      gap: 16px;
+      animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      max-width: 85%;
+    }
+    .msg.user {
+      flex-direction: row-reverse;
+      align-self: flex-end;
+    }
+    .msg.bot {
+      align-self: flex-start;
+    }
+
+    .av {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .msg.user .av {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .msg.bot .av {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2));
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+      font-size: 16px;
+    }
+
+    .bubble {
+      padding: 16px 20px;
+      border-radius: 20px;
+      font-size: 14.5px;
+      line-height: 1.7;
+    }
+    .msg.user .bubble {
+      background: var(--user-bg);
+      border: 1px solid var(--user-border);
+      border-top-right-radius: 6px;
+      color: #f8fafc;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.05);
+    }
+    .msg.bot .bubble {
+      background: var(--bot-bg);
+      border: 1px solid var(--bot-border);
+      border-top-left-radius: 6px;
+      color: var(--text-muted);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .bubble h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin: 18px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bubble h3:first-child { margin-top: 0; }
+    .bubble strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .bubble ul {
+      padding-left: 20px;
+      margin-top: 8px;
+      color: var(--text-muted);
+    }
+    .bubble ul li { margin-bottom: 6px; }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bot-bg);
+      border: 1px solid var(--bot-border);
+      border-radius: 20px;
+      border-top-left-radius: 6px;
+      width: fit-content;
+    }
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: tdot 1.2s infinite ease-in-out;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s }
+    .typing span:nth-child(3) { animation-delay: 0.4s }
+    @keyframes tdot {
+      0%, 100% { opacity: 0.3; transform: translateY(0) }
+      50% { opacity: 1; transform: translateY(-3px) }
+    }
+
+    /* INPUT ZONE */
+    .input-zone {
+      padding: 16px 24px;
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 10px 10px 16px;
+      transition: all 0.3s;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .input-row:focus-within {
+      border-color: var(--border-glow);
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1), inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #user-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      resize: none;
+      max-height: 150px;
+      line-height: 1.6;
+      padding: 6px 0;
+    }
+    #user-input::placeholder { color: rgba(255,255,255,0.3); }
+
+    #send-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+    #send-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+    #send-btn:disabled {
+      background: var(--surface-hover);
+      color: var(--text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 240px 1fr;
+      }
+      .sidebar-right { display: none; }
+    }
+    @media (max-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-left { display: none; }
+      #messages { padding: 20px; }
+      .welcome h1 { font-size: 26px; }
+      .bubble { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">🏥</div>
+      <div class="brand-name">MediChat</div>
+    </div>
+    <div class="topbar-center">
+      <div class="status-dot"></div>
+      AI Assistant Online
+    </div>
+    <div class="topbar-right">
+      <button class="btn-topbar btn-clear" onclick="clearChat()">Trash</button>
+      <div class="user-pill">
+        <div class="user-av" id="user-av">?</div>
+        <span class="user-nm" id="user-nm">Guest</span>
+      </div>
+      <button class="btn-topbar" onclick="logout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="disclaimer-bar">
+    ⚠️ <span><strong>Disclaimer:</strong> This tool provides general AI-generated health info, not medical diagnosis. Always consult a real physician.</span>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="panel sidebar-left">
+      <div class="panel-header">Quick Symptoms</div>
+      <button class="qs-btn" onclick="qs('I have a severe headache and high fever for 2 days')"><span class="qi">🤕</span> Headache & Fever</button>
+      <button class="qs-btn" onclick="qs('I have chest pain and shortness of breath')"><span class="qi">💔</span> Chest Pain</button>
+      <button class="qs-btn" onclick="qs('I have nausea, vomiting and stomach cramps')"><span class="qi">🤢</span> Nausea & Vomiting</button>
+      <button class="qs-btn" onclick="qs('I have a persistent dry cough and sore throat')"><span class="qi">😷</span> Cough & Cold</button>
+      <button class="qs-btn" onclick="qs('I feel extremely fatigued and dizzy')"><span class="qi">😴</span> Fatigue & Dizzines</button>
+      <button class="qs-btn" onclick="qs('I have a skin rash with severe itching')"><span class="qi">🩺</span> Skin Rash</button>
+      <button class="qs-btn" onclick="qs('I have lower back pain for several days')"><span class="qi">🦴</span> Back Pain</button>
+      <button class="qs-btn" onclick="qs('I have anxiety and cannot sleep at night')"><span class="qi">🧠</span> Anxiety & Sleep</button>
+      <button class="qs-btn" onclick="qs('I have symptoms of high blood pressure')"><span class="qi">❤️</span> Blood Pressure</button>
+
+      <div class="profile-card">
+        <div class="pc-name" id="pc-name">Loading…</div>
+        <div class="pc-email" id="pc-email">—</div>
+        <span class="pc-badge">✓ Verified User</span>
+      </div>
+    </aside>
+
+    <!-- CHAT AREA -->
+    <div class="panel chat-area">
+      <div id="messages">
+        <div class="welcome" id="welcome-screen">
+          <span class="wi">🩺</span>
+          <h1 id="welcome-h">Hello there 👋</h1>
+          <p>Describe your symptoms clearly — include duration, severity, and anything that makes them better or worse.</p>
+          <div class="tag-row">
+            <span class="tag" onclick="qs('I have a headache')">Headache</span>
+            <span class="tag" onclick="qs('I have a fever')">Fever</span>
+            <span class="tag" onclick="qs('I have a cough')">Cough</span>
+            <span class="tag" onclick="qs('I feel nauseous')">Nausea</span>
+            <span class="tag" onclick="qs('I have back pain')">Back Pain</span>
+            <span class="tag" onclick="qs('I feel very tired')">Fatigue</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-zone">
+        <div class="input-row">
+          <textarea id="user-input" rows="1" placeholder="Describe your symptoms in detail..."></textarea>
+          <button id="send-btn" onclick="send()">➤</button>
+        </div>
+        <div class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="panel sidebar-right">
+      <div class="panel-header">Health Resources</div>
+
+      <div class="info-block emer-block">
+        <div class="ib-title">🚨 Emergency?</div>
+        <p>Chest pain, difficulty breathing, stroke signs — call immediately.</p>
+        <span class="phone">📞 911 / 108</span>
+      </div>
+
+      <div class="info-block">
+        <div class="ib-title">🔍 Describe Better</div>
+        <ul>
+          <li>When did it start?</li>
+          <li>Severity (scale 1–10)</li>
+          <li>Any triggers?</li>
+          <li>Other symptoms?</li>
+          <li>Medications taken?</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="ib-title">💡 MediChat Can Help</div>
+        <p>Symptom analysis, possible conditions, home remedies, OTC guidance, and advice on when to see a doctor.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="ib-title">⚕️ Common Conditions</div>
+        <ul>
+          <li>Common Cold & Flu</li>
+          <li>Migraine</li>
+          <li>Gastritis / GERD</li>
+          <li>Hypertension</li>
+          <li>Anxiety / Stress</li>
+        </ul>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    const SYSTEM_PROMPT = `You are MediChat, an advanced empathetic AI medical assistant. When a user describes symptoms, respond using this exact structure:
+
+## 🔍 Symptom Analysis
+Briefly summarize the user's described symptoms.
+
+## 🧬 Possible Conditions
+List 2–4 likely conditions. Format: **Condition Name** — brief explanation of why it matches.
+
+## ⚠️ Severity Level
+State: **Mild**, **Moderate**, or **Severe/Urgent** and explain your reasoning.
+
+## 💊 Recommended Treatment
+- Home remedies and self-care steps
+- OTC medications with general dosage guidance
+- What to avoid
+
+## 🥗 Diet & Lifestyle
+Specific dietary advice, hydration guidance, and rest recommendations.
+
+## 👨‍⚕️ When to Seek Medical Help
+Red flags requiring a doctor visit or ER. For life-threatening symptoms, begin with: ⚠️ SEEK EMERGENCY CARE IMMEDIATELY.
+
+## ❓ Follow-up Questions
+Ask 1–2 targeted questions to refine your assessment.
+
+---
+RULES: Never definitively diagnose — use "may suggest", "could indicate", "commonly associated with". For chest pain, breathing issues, or stroke symptoms, recommend emergency care FIRST. Always end with: *⚕️ This is general health information. Please consult a qualified healthcare provider for proper diagnosis.*`;
+
+    let history = [];
+    let busy = false;
+
+    const msgDiv = document.getElementById('messages');
+    const input = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const raw = localStorage.getItem('medichat_user');
+      if (!raw) { window.location.href = 'signin.html'; return; }
+      const user = JSON.parse(raw);
+      const init = (user.name || 'U').slice(0, 2).toUpperCase();
+      document.getElementById('user-av').textContent = init;
+      document.getElementById('user-nm').textContent = user.name || 'User';
+      document.getElementById('pc-name').textContent = user.name || 'User';
+      document.getElementById('pc-email').textContent = user.email || '';
+      document.getElementById('welcome-h').textContent = `Hello, ${user.name || 'there'} 👋`;
+    });
+
+    function logout() {
+      if (confirm('Sign out of MediChat?')) {
+        localStorage.removeItem('medichat_user');
+        window.location.href = 'signin.html';
+      }
+    }
+
+    function clearChat() {
+      history = [];
+      msgDiv.innerHTML = `<div class="welcome"><span class="wi">🩺</span><h1>Fresh start!</h1><p>Describe your symptoms and I'll provide a thorough health analysis.</p></div>`;
+    }
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+    input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 150) + 'px'; });
+
+    function qs(text) { input.value = text; send(); }
+
+    function addMsg(role, content) {
+      document.getElementById('welcome-screen')?.remove();
+      const wrap = document.createElement('div');
+      wrap.className = `msg ${role}`;
+      const av = document.createElement('div');
+      av.className = 'av';
+      if (role === 'user') {
+        const u = JSON.parse(localStorage.getItem('medichat_user') || '{}');
+        av.textContent = (u.name || 'U').slice(0, 2).toUpperCase();
+      } else { av.textContent = '🩺'; }
+      const bub = document.createElement('div');
+      bub.className = 'bubble';
+      bub.innerHTML = fmt(content);
+      wrap.appendChild(av); wrap.appendChild(bub);
+      msgDiv.appendChild(wrap);
+      msgDiv.scrollTop = msgDiv.scrollHeight;
+    }
+
+    function fmt(t) {
+      return t
+        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^\- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function addTyping() {
+      document.getElementById('welcome-screen')?.remove();
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot'; wrap.id = 'typing-wrap';
+      const av = document.createElement('div'); av.className = 'av'; av.textContent = '🩺';
+      const ind = document.createElement('div');
+      ind.className = 'typing';
+      ind.innerHTML = '<span></span><span></span><span></span>';
+      wrap.appendChild(av); wrap.appendChild(ind);
+      msgDiv.appendChild(wrap);
+      msgDiv.scrollTop = msgDiv.scrollHeight;
+    }
+
+    function removeTyping() { document.getElementById('typing-wrap')?.remove(); }
+
+    async function send() {
+      const text = input.value.trim();
+      if (!text || busy) return;
+      busy = true; sendBtn.disabled = true;
+      input.value = ''; input.style.height = 'auto';
+      addMsg('user', text);
+      history.push({ role: 'user', content: text });
+      addTyping();
+      try {
+        let apiKey = localStorage.getItem('AIzaSyDA7GeA96UMR6p004RkjrrC2zEEF2snQTs');
+        if (apiKey === null) {
+          apiKey = prompt("To use real AI, enter a free Google Gemini API key.\n\nLeave blank and click OK to test with DEMO/FAKE responses.");
+          if (apiKey === null) apiKey = '';
+          localStorage.setItem('gemini_api_key', apiKey);
+        }
+
+        let reply = '';
+
+        if (!apiKey) {
+          // Mock Demo mode
+          await new Promise(r => setTimeout(r, 1200));
+          reply = `## 🔍 Symptom Analysis\nYou mentioned experiencing symptoms like: "${text.substring(0, 40)}${text.length > 40 ? '...' : ''}"\n\n## 🧬 Possible Conditions\n**Common Condition** — Symptoms align with routine viral infections or seasonal allergies.\n**Fatigue/Stress** — Physical or mental exhaustion could be contributing.\n\n## ⚠️ Severity Level\n**Mild**. These appear to be routine symptoms that can be managed at home.\n\n## 💊 Recommended Treatment\n- Get plenty of rest and drink fluids.\n- Over-the-counter pain relievers can help with discomfort.\n- Avoid strenuous activity.\n\n## 🥗 Diet & Lifestyle\nDrink warm herbal tea, eat light soups, and aim for 8 hours of restful sleep.\n\n## 👨‍⚕️ When to Seek Medical Help\nIf symptoms worsen, fever exceeds 103°F, or you develop chest pain or breathing issues, consult a doctor immediately.\n\n## ❓ Follow-up Questions\nHow long have these symptoms been consistently affecting you?\n\n---\n*⚕️ This is general health information (DEMO MODE). Please clear your browser cache and add a Gemini API Key to get real AI analysis.*`;
+        } else {
+          const geminiHistory = history.map(msg => ({
+            role: msg.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: msg.content }]
+          }));
+
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+              contents: geminiHistory
+            })
+          });
+          const data = await res.json();
+          if (data.error) {
+            if (data.error.code === 400 || data.error.code === 403) {
+              localStorage.removeItem('gemini_api_key');
+              throw new Error("Invalid API key - please refresh the page to enter a new one");
+            }
+            throw new Error(data.error.message);
+          }
+          reply = data.candidates[0].content.parts[0].text;
+        }
+
+        removeTyping();
+        history.push({ role: 'assistant', content: reply });
+        addMsg('bot', reply);
+      } catch (e) {
+        removeTyping();
+        addMsg('bot', '⚠️ Connection error. Please check your internet and try again. <br><br><i>Error details: ' + (e.message || 'Unknown') + '</i>');
+        history.pop();
+      }
+      busy = false; sendBtn.disabled = false; input.focus();
+    }
+  </script>
+</body>
+</html>
